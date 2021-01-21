@@ -438,6 +438,30 @@ describe('RESTDataSource', () => {
       expect(data).toEqual({ foo: 'bar' });
     });
 
+    // Need to override RESTDataSource.hasJsonContent for this test
+    it('returns data as parsed JSON when Content-Type is application/problem+json', async () => {
+      const dataSource = new (class extends RESTDataSource {
+        baseURL = 'https://api.example.com';
+
+        getFoo() {
+          return this.get('foo');
+        }
+      })();
+
+      dataSource.httpCache = httpCache;
+
+      const body = { title: 'Invalid request', detail: `Parameter 'id' must not be null`, instance: '/foo' };
+
+      fetch.mockJSONResponseOnce(
+        body,
+        { 'Content-Type': 'application/problem+json' },
+      );
+
+      const data = await dataSource.getFoo();
+
+      expect(data).toEqual(body);
+    });
+
     it('returns data as a string when Content-Type is text/plain', async () => {
       const dataSource = new (class extends RESTDataSource {
         baseURL = 'https://api.example.com';

@@ -108,21 +108,21 @@ export abstract class RESTDataSource<TContext = any> extends DataSource {
   }
 
   protected parseBody(response: Response): Promise<object | string> {
+    return this.hasJsonContent(response) ? response.json() : response.text();
+  }
+
+  protected hasJsonContent(response: Response): boolean {
     const contentType = response.headers.get('Content-Type');
     const contentLength = response.headers.get('Content-Length');
-    if (
-      // As one might expect, a "204 No Content" is empty! This means there
-      // isn't enough to `JSON.parse`, and trying will result in an error.
-      response.status !== 204 &&
-      contentLength !== '0' &&
-      contentType &&
-      (contentType.startsWith('application/json') ||
-        contentType.startsWith('application/hal+json'))
-    ) {
-      return response.json();
-    } else {
-      return response.text();
-    }
+
+    // As one might expect, a "204 No Content" is empty! This means there
+    // isn't enough to `JSON.parse`, and trying will result in an error.
+    // return false;
+    return response.status !== 204 &&
+    contentLength !== '0' &&
+    contentType &&
+    (contentType.startsWith('application/json') ||
+      contentType.startsWith('application/hal+json'))
   }
 
   protected async errorFromResponse(response: Response) {
